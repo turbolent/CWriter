@@ -24,6 +24,8 @@ public protocol Element {
 
 public struct Indentation: Element {
 
+    public init() {}
+
     public func write<Stream: TextOutputStream>(to writer: inout CWriter<Stream>) {
         writer.currentIndentation.write(to: &writer)
     }
@@ -33,7 +35,7 @@ public struct Raw: Element {
 
     public let raw: String
 
-    init(_ raw: String) {
+    public init(_ raw: String) {
         self.raw = raw
     }
 
@@ -54,7 +56,7 @@ public struct Include: Element {
     public let file: String
     public let style: IncludeStyle
 
-    init(file: String, style: IncludeStyle) {
+    public init(file: String, style: IncludeStyle) {
         self.file = file
         self.style = style
     }
@@ -78,7 +80,7 @@ public struct Indented: Element {
 
     public let body: Body
 
-    init(@CBuilder body: @escaping Body) {
+    public init(@CBuilder body: @escaping Body) {
         self.body = body
     }
 
@@ -95,7 +97,7 @@ public struct Braced: Element {
 
     public let body: Body
 
-    init(@CBuilder body: @escaping Body) {
+    public init(@CBuilder body: @escaping Body) {
         self.body = body
     }
 
@@ -110,7 +112,7 @@ public struct Parameter: Element {
     public let name: String?
     public let type: Type
 
-    init(name: String? = nil, type: Type) {
+    public init(name: String? = nil, type: Type) {
         self.name = name
         self.type = type
     }
@@ -127,7 +129,7 @@ public struct Field: Element {
     public let name: String
     public let type: Type
 
-    init(name: String, type: Type) {
+    public init(name: String, type: Type) {
         self.name = name
         self.type = type
     }
@@ -147,7 +149,7 @@ public struct Function: Element {
     public let parameters: [Parameter]
     public let body: Body
 
-    init(
+    public init(
         returnType: Type,
         name: String,
         parameters: [Parameter] = [],
@@ -179,7 +181,7 @@ public struct ParameterList: Element {
 
     public let parameters: [Parameter]
 
-    init(parameters: [Parameter]) {
+    public init(parameters: [Parameter]) {
         self.parameters = parameters
     }
 
@@ -200,7 +202,7 @@ public struct Typedef: Element {
     public let name: String
     public let type: Type
 
-    init(name: String, type: Type) {
+    public init(name: String, type: Type) {
         self.name = name
         self.type = type
     }
@@ -220,7 +222,7 @@ public struct Struct: Element {
     public let name: String
     public let body: Body
 
-    init(
+    public init(
         name: String,
         @CBuilder body: @escaping Body = { [ ] }
     ) {
@@ -250,7 +252,7 @@ public struct Attribute: Element {
 
     public let contents: String
 
-    init(contents: String) {
+    public init(contents: String) {
         self.contents = contents
     }
 
@@ -264,7 +266,7 @@ public struct ImportAttribute: Element {
     public let importName: String
     public let moduleName: String?
 
-    init(importName: String, moduleName: String? = nil) {
+    public init(importName: String, moduleName: String? = nil) {
         self.importName = importName
         self.moduleName = moduleName
     }
@@ -299,32 +301,32 @@ public struct CWriter<Stream: TextOutputStream>: TextOutputStream {
 }
 
 @resultBuilder
-struct CBuilder {
-    static func buildBlock(_ elements: [Element]...) -> [Element] {
+public struct CBuilder {
+    public static func buildBlock(_ elements: [Element]...) -> [Element] {
         elements.flatMap { $0 }
     }
 
-    static func buildExpression(_ elements: [Element]) -> [Element] {
+    public static func buildExpression(_ elements: [Element]) -> [Element] {
         elements
     }
 
-    static func buildExpression(_ element: Element) -> [Element] {
+    public static func buildExpression(_ element: Element) -> [Element] {
         [element]
     }
 
-    static func buildOptional(_ elements: [Element]?) -> [Element] {
+    public static func buildOptional(_ elements: [Element]?) -> [Element] {
         elements ?? []
     }
 
-    static func buildEither(first elements: [Element]) -> [Element] {
+    public static func buildEither(first elements: [Element]) -> [Element] {
         elements
     }
 
-    static func buildEither(second elements: [Element]) -> [Element] {
+    public static func buildEither(second elements: [Element]) -> [Element] {
         elements
     }
 
-    static func buildArray(_ elements: [[Element]]) -> [Element] {
+    public static func buildArray(_ elements: [[Element]]) -> [Element] {
         elements.flatMap { $0 }
     }
 }

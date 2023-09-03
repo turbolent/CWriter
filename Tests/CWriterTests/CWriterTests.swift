@@ -1,5 +1,5 @@
 import XCTest
-@testable import CWriter
+import CWriter
 
 class CWriterTests: XCTestCase {
 
