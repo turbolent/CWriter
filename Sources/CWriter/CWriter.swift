@@ -1,24 +1,124 @@
 
 public indirect enum Type {
-    case Nominal(String)
-    case Pointer(Type)
-    case Struct(String)
     case Raw(String)
+    case Declaration(TypeDeclaration)
 
-    public func write<Stream: TextOutputStream>(to stream: inout Stream) {
+    public func write<Stream: TextOutputStream>(identifier: String?, to stream: inout Stream) {
         switch self {
-            case let .Nominal(name):
-                name.write(to: &stream)
-
-            case let .Pointer(type):
-                type.write(to: &stream)
-                "*".write(to: &stream)
-
-            case let .Struct(name):
-                "struct \(name)".write(to: &stream)
-
             case let .Raw(raw):
                 raw.write(to: &stream)
+                if let identifier {
+                    " \(identifier)".write(to: &stream)
+                }
+
+            case let .Declaration(declaration):
+                declaration.write(identifier: identifier, to: &stream)
+        }
+    }
+}
+
+// See Section "6.7 Declarations" in the C standard
+// http://www.open-std.org/jtc1/sc22/wg14/www/docs/n1570.pdf.
+//
+// inspired by https://github.com/mozilla/cbindgen CDecl
+//
+public struct TypeDeclaration {
+
+    public enum TypeQualifier: String {
+        case Const = "const"
+    }
+
+    public enum TypeSpecifier {
+        case Name(String)
+        case Struct(String)
+    }
+
+    public enum Declarator {
+        case Pointer(isConst: Bool)
+        case Array(size: Int?)
+    }
+
+    public var typeQualifers: [TypeQualifier]
+    public var typeSpecifier: TypeSpecifier
+    public var declarators: [Declarator]
+
+    public init(
+        typeQualifers: [TypeQualifier] = [],
+        typeSpecifier: TypeSpecifier,
+        declarators: [Declarator] = []
+    ) {
+        self.typeQualifers = typeQualifers
+        self.typeSpecifier = typeSpecifier
+        self.declarators = declarators
+    }
+
+    public func write<Stream: TextOutputStream>(identifier: String?, to stream: inout Stream) {
+
+        // Write the type qualifiers first
+        for typeQualifier in typeQualifers {
+            typeQualifier.rawValue.write(to: &stream)
+            " ".write(to: &stream)
+        }
+
+        // Write the type specifier next
+        switch typeSpecifier {
+            case let .Name(name):
+                name.write(to: &stream)
+            case let .Struct(name):
+                "struct \(name)".write(to: &stream)
+        }
+
+        // When we have an identifier, put a space between the type specifier and the declarators
+        if identifier != nil {
+            " ".write(to: &stream)
+        }
+
+        // Write the left part of declarators before the identifier
+        for (index, declarator) in declarators.enumerated().reversed() {
+            let nextIsPointer: Bool
+            if index <= 1 {
+                nextIsPointer = false
+            } else if case .Pointer = declarators[index - 1] {
+                nextIsPointer = true
+            } else {
+                nextIsPointer = false
+            }
+
+            switch declarator {
+                case let .Pointer(isConst: isConst):
+                    "*".write(to: &stream)
+                    if isConst {
+                        "const ".write(to: &stream)
+                    }
+
+                case .Array:
+                    if nextIsPointer {
+                        "(".write(to: &stream)
+                    }
+            }
+        }
+
+        // Write the identifier, if any
+        if let identifier {
+            identifier.write(to: &stream)
+        }
+
+        // Write the right part of declarators after the identifier
+        var lastWasPointer = false
+
+        for declarator in declarators {
+            switch declarator {
+                case .Pointer:
+                    lastWasPointer = true
+
+                case let .Array(size):
+                    if lastWasPointer {
+                        ")".write(to: &stream)
+                    }
+                    lastWasPointer = false
+
+                    "[\(size.map(String.init) ?? "")]".write(to: &stream)
+            }
         }
     }
 }
@@ -119,34 +219,36 @@ public struct Braced: Element {
 }
 
 public struct Parameter: Element {
-    public let name: String?
+    public let identifier: String?
     public let type: Type
 
-    public init(name: String? = nil, type: Type) {
-        self.name = name
+    public init(identifier: String? = nil, type: Type) {
+        self.identifier = identifier
         self.type = type
     }
 
     public func write<Stream: TextOutputStream>(to writer: inout Writer<Stream>) {
-        type.write(to: &writer.stream)
-        if let name {
-            " \(name)".write(to: &writer)
-        }
+        type.write(
+            identifier: identifier,
+            to: &writer.stream
+        )
     }
 }
 
 public struct Field: Element {
-    public let name: String
+    public let identifier: String
     public let type: Type
 
-    public init(name: String, type: Type) {
-        self.name = name
+    public init(identifier: String, type: Type) {
+        self.identifier = identifier
         self.type = type
     }
 
     public func write<Stream: TextOutputStream>(to writer: inout Writer<Stream>) {
-        type.write(to: &writer)
-        " \(name)".write(to: &writer)
+        type.write(
+            identifier: identifier,
+            to: &writer
+        )
         Semicolon.write(to: &writer)
         Newline.write(to: &writer)
     }
@@ -155,25 +257,27 @@ public struct Field: Element {
 public struct Function: Element {
 
     public let returnType: Type
-    public let name: String
+    public let identifier: String
     public let parameters: [Parameter]
     public let body: Body
 
     public init(
         returnType: Type,
-        name: String,
+        identifier: String,
         parameters: [Parameter] = [],
         @CBuilder body: @escaping Body = { [ ] }
     ) {
         self.returnType = returnType
-        self.name = name
+        self.identifier = identifier
         self.parameters = parameters
         self.body = body
     }
 
     public func write<Stream: TextOutputStream>(to writer: inout Writer<Stream>) {
-        returnType.write(to: &writer)
-        " \(name)".write(to: &writer)
+        returnType.write(
+            identifier: identifier,
+            to: &writer
+        )
         ParameterList(parameters: parameters).write(to: &writer)
         let body = body()
         if body.isEmpty {
@@ -208,18 +312,20 @@ public struct ParameterList: Element {
 
 public struct Typedef: Element {
 
-    public let name: String
+    public let identifier: String
     public let type: Type
 
-    public init(name: String, type: Type) {
-        self.name = name
+    public init(identifier: String, type: Type) {
+        self.identifier = identifier
         self.type = type
     }
 
     public func write<Stream: TextOutputStream>(to writer: inout Writer<Stream>) {
         "typedef ".write(to: &writer)
-        type.write(to: &writer)
-        " \(name)".write(to: &writer)
+        type.write(
+            identifier: identifier,
+            to: &writer
+        )
         Semicolon.write(to: &writer)
         Newline.write(to: &writer)
     }
@@ -227,19 +333,19 @@ public struct Typedef: Element {
 
 public struct Struct: Element {
 
-    public let name: String
+    public let identifier: String
     public let body: Body
 
     public init(
-        name: String,
+        identifier: String,
         @CBuilder body: @escaping Body = { [ ] }
     ) {
-        self.name = name
+        self.identifier = identifier
         self.body = body
     }
 
     public func write<Stream: TextOutputStream>(to writer: inout Writer<Stream>) {
-        "struct \(name) ".write(to: &writer)
+        "struct \(identifier) ".write(to: &writer)
         let body = body()
         Braced {
             for element in body {

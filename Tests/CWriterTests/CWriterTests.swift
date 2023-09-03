@@ -89,11 +89,11 @@ class CWriterTests: XCTestCase {
         var writer = Writer()
 
         Function(
-            returnType: .Nominal("int"),
-            name: "foo",
+            returnType: .Raw("int"),
+            identifier: "foo",
             parameters: [
-                .init(name: "bar", type: .Nominal("char")),
-                .init(name: "baz", type: .Nominal("void"))
+                .init(identifier: "bar", type: .Raw("char")),
+                .init(identifier: "baz", type: .Raw("void"))
             ]
         ) {
             Include(file: "foo", style: .Quotes)
@@ -114,11 +114,11 @@ class CWriterTests: XCTestCase {
         var writer = Writer()
 
         Function(
-            returnType: .Nominal("int"),
-            name: "foo",
+            returnType: .Raw("int"),
+            identifier: "foo",
             parameters: [
-                .init(name: "bar", type: .Nominal("char")),
-                .init(name: "baz", type: .Nominal("void"))
+                .init(identifier: "bar", type: .Raw("char")),
+                .init(identifier: "baz", type: .Raw("void"))
             ]
         ).write(to: &writer)
 
@@ -135,8 +135,8 @@ class CWriterTests: XCTestCase {
         var writer = Writer()
 
         Function(
-            returnType: .Nominal("int"),
-            name: "foo"
+            returnType: .Raw("int"),
+            identifier: "foo"
         ).write(to: &writer)
 
         XCTAssertEqual(
@@ -152,10 +152,10 @@ class CWriterTests: XCTestCase {
         var writer = Writer()
 
         Function(
-            returnType: .Nominal("int"),
-            name: "foo",
+            returnType: .Raw("int"),
+            identifier: "foo",
             parameters: [
-                .init(type: .Nominal("void"))
+                .init(type: .Raw("void"))
             ]
         ).write(to: &writer)
 
@@ -171,8 +171,12 @@ class CWriterTests: XCTestCase {
     public func testTypedef() throws {
         var writer = Writer()
 
-        Typedef(name: "Foo", type: .Struct("Bar"))
-            .write(to: &writer)
+        Typedef(
+            identifier: "Foo",
+            type: .Declaration(TypeDeclaration(
+                typeSpecifier: .Struct("Bar")
+            ))
+        ).write(to: &writer)
 
         XCTAssertEqual(
             """
@@ -186,7 +190,7 @@ class CWriterTests: XCTestCase {
     public func testStructWithoutFields() throws {
         var writer = Writer()
 
-        Struct(name: "Foo")
+        Struct(identifier: "Foo")
             .write(to: &writer)
 
         XCTAssertEqual(
@@ -201,16 +205,22 @@ class CWriterTests: XCTestCase {
     public func testStructWithFields() throws {
         var writer = Writer()
 
-        Struct(name: "Foo") {
-            Field(name: "foo", type: .Nominal("int"))
-            Field(name: "bar", type: .Pointer(.Nominal("char")))
+        Struct(identifier: "Foo") {
+            Field(identifier: "foo", type: .Raw("int"))
+            Field(
+                identifier: "bar",
+                type: .Declaration(TypeDeclaration(
+                    typeSpecifier: .Name("char"),
+                    declarators: [.Pointer(isConst: false)]
+                ))
+            )
         }.write(to: &writer)
 
         XCTAssertEqual(
             """
             struct Foo {
                 int foo;
-                char* bar;
+                char *bar;
             };
 
             """,
@@ -262,28 +272,66 @@ class CWriterTests: XCTestCase {
         )
     }
 
-    public func testTypeNominal() throws {
+    public func testTypeDeclarationNameNoIdentifier() throws {
         var result = ""
 
-        Type.Nominal("int").write(to: &result)
+        TypeDeclaration(
+            typeSpecifier: .Name("int")
+        ).write(identifier: nil, to: &result)
 
         XCTAssertEqual("int", result)
     }
 
-    public func testTypePointer() throws {
+    public func testTypeDeclarationNameWithIdentifier() throws {
         var result = ""
 
-        Type.Pointer(.Nominal("int")).write(to: &result)
+        TypeDeclaration(
+            typeSpecifier: .Name("int")
+        ).write(identifier: "foo", to: &result)
+
+        XCTAssertEqual("int foo", result)
+    }
+
+    public func testTypeDeclarationPointerNoIdentifier() throws {
+        var result = ""
+
+        TypeDeclaration(
+            typeSpecifier: .Name("int"),
+            declarators: [.Pointer(isConst: false)]
+        ).write(identifier: nil, to: &result)
 
         XCTAssertEqual("int*", result)
     }
 
-    public func testTypeStruct() throws {
+    public func testTypeDeclarationPointerWithIdentifier() throws {
         var result = ""
 
-        Type.Struct("X").write(to: &result)
+         TypeDeclaration(
+            typeSpecifier: .Name("int"),
+            declarators: [.Pointer(isConst: false)]
+        ).write(identifier: "foo", to: &result)
+
+        XCTAssertEqual("int *foo", result)
+    }
+
+    public func testTypeDeclarationStructNoIdentifier() throws {
+        var result = ""
+
+        TypeDeclaration(
+            typeSpecifier: .Struct("X")
+        ).write(identifier: nil, to: &result)
 
         XCTAssertEqual("struct X", result)
+    }
+
+    public func testTypeDeclarationStructWithIdentifier() throws {
+        var result = ""
+
+        TypeDeclaration(
+            typeSpecifier: .Struct("X")
+        ).write(identifier: "foo", to: &result)
+
+        XCTAssertEqual("struct X foo", result)
     }
 
      public func testBuild() throws {
@@ -292,10 +340,10 @@ class CWriterTests: XCTestCase {
         build {
             Include(file: "foo", style: .Quotes)
             Include(file: "bar", style: .AngularBrackets)
-            Struct(name: "Foo")
+            Struct(identifier: "Foo")
             Function(
-                returnType: .Nominal("int"),
-                name: "foo"
+                returnType: .Raw("int"),
+                identifier: "foo"
             )
         }.forEach { $0.write(to: &writer) }
 
@@ -319,11 +367,11 @@ class CWriterTests: XCTestCase {
                 Include(file: "foo", style: .Quotes)
                 Include(file: "bar", style: .AngularBrackets)
                 if writeFoo {
-                    Struct(name: "Foo")
+                    Struct(identifier: "Foo")
                 }
                 Function(
-                    returnType: .Nominal("int"),
-                    name: "foo"
+                    returnType: .Raw("int"),
+                    identifier: "foo"
                 )
             }.forEach { $0.write(to: &writer) }
             return writer.stream
@@ -360,13 +408,13 @@ class CWriterTests: XCTestCase {
                 Include(file: "foo", style: .Quotes)
                 Include(file: "bar", style: .AngularBrackets)
                 if writeFoo {
-                    Struct(name: "Foo")
+                    Struct(identifier: "Foo")
                 } else {
-                    Struct(name: "Bar")
+                    Struct(identifier: "Bar")
                 }
                 Function(
-                    returnType: .Nominal("int"),
-                    name: "foo"
+                    returnType: .Raw("int"),
+                    identifier: "foo"
                 )
             }.forEach { $0.write(to: &writer) }
             return writer.stream
