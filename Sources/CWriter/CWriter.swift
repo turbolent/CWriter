@@ -68,7 +68,6 @@ public struct Include: Element {
     }
 
     public func write<Stream: TextOutputStream>(to writer: inout Writer<Stream>) {
-        Indentation().write(to: &writer)
         "#include ".write(to: &writer)
         switch style {
         case .Quotes:
@@ -93,6 +92,7 @@ public struct Indented: Element {
     public func write<Stream: TextOutputStream>(to writer: inout Writer<Stream>) {
         writer.currentIndentation.append(writer.indentation)
         for Element in body() {
+            Indentation().write(to: &writer)
             Element.write(to: &writer)
         }
         writer.currentIndentation.removeLast(writer.indentation.count)
@@ -109,7 +109,11 @@ public struct Braced: Element {
 
     public func write<Stream: TextOutputStream>(to writer: inout Writer<Stream>) {
         "{".write(to: &writer)
-        Indented(body: body).write(to: &writer)
+        let elements = body()
+        if !elements.isEmpty {
+            Newline.write(to: &writer)
+        }
+        Indented { elements }.write(to: &writer)
         "}".write(to: &writer)
     }
 }
@@ -168,7 +172,6 @@ public struct Function: Element {
     }
 
     public func write<Stream: TextOutputStream>(to writer: inout Writer<Stream>) {
-        Indentation().write(to: &writer)
         returnType.write(to: &writer)
         " \(name)".write(to: &writer)
         ParameterList(parameters: parameters).write(to: &writer)
@@ -214,7 +217,6 @@ public struct Typedef: Element {
     }
 
     public func write<Stream: TextOutputStream>(to writer: inout Writer<Stream>) {
-        Indentation().write(to: &writer)
         "typedef ".write(to: &writer)
         type.write(to: &writer)
         " \(name)".write(to: &writer)
@@ -237,15 +239,10 @@ public struct Struct: Element {
     }
 
     public func write<Stream: TextOutputStream>(to writer: inout Writer<Stream>) {
-        Indentation().write(to: &writer)
         "struct \(name) ".write(to: &writer)
         let body = body()
         Braced {
-            if !body.isEmpty {
-                Newline
-            }
             for element in body {
-                Indentation()
                 element
             }
         }.write(to: &writer)

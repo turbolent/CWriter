@@ -53,7 +53,6 @@ class CWriterTests: XCTestCase {
         var writer = Writer()
 
         Braced {
-            Newline
             Include(file: "foo", style: .Quotes)
         }.write(to: &writer)
 
@@ -71,7 +70,6 @@ class CWriterTests: XCTestCase {
         var writer = Writer()
 
         Braced {
-            Newline
             Include(file: "foo", style: .Quotes)
             Include(file: "bar", style: .Quotes)
         }.write(to: &writer)
@@ -98,7 +96,6 @@ class CWriterTests: XCTestCase {
                 .init(name: "baz", type: .Nominal("void"))
             ]
         ) {
-            Newline
             Include(file: "foo", style: .Quotes)
         }.write(to: &writer)
 
