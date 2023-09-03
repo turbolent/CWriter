@@ -3,16 +3,22 @@ public indirect enum Type {
     case Nominal(String)
     case Pointer(Type)
     case Struct(String)
+    case Raw(String)
 
     public func write<Stream: TextOutputStream>(to stream: inout Stream) {
         switch self {
             case let .Nominal(name):
                 name.write(to: &stream)
+
             case let .Pointer(type):
                 type.write(to: &stream)
                 "*".write(to: &stream)
+
             case let .Struct(name):
                 "struct \(name)".write(to: &stream)
+
+            case let .Raw(raw):
+                raw.write(to: &stream)
         }
     }
 }
