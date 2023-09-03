@@ -19,14 +19,14 @@ public indirect enum Type {
 
 public protocol Element {
 
-    func write<Stream: TextOutputStream>(to writer: inout CWriter<Stream>)
+    func write<Stream: TextOutputStream>(to writer: inout Writer<Stream>)
 }
 
 public struct Indentation: Element {
 
     public init() {}
 
-    public func write<Stream: TextOutputStream>(to writer: inout CWriter<Stream>) {
+    public func write<Stream: TextOutputStream>(to writer: inout Writer<Stream>) {
         writer.currentIndentation.write(to: &writer)
     }
 }
@@ -39,7 +39,7 @@ public struct Raw: Element {
         self.raw = raw
     }
 
-    public func write<Stream: TextOutputStream>(to writer: inout CWriter<Stream>) {
+    public func write<Stream: TextOutputStream>(to writer: inout Writer<Stream>) {
         raw.write(to: &writer)
     }
 }
@@ -61,7 +61,7 @@ public struct Include: Element {
         self.style = style
     }
 
-    public func write<Stream: TextOutputStream>(to writer: inout CWriter<Stream>) {
+    public func write<Stream: TextOutputStream>(to writer: inout Writer<Stream>) {
         Indentation().write(to: &writer)
         "#include ".write(to: &writer)
         switch style {
@@ -84,7 +84,7 @@ public struct Indented: Element {
         self.body = body
     }
 
-    public func write<Stream: TextOutputStream>(to writer: inout CWriter<Stream>) {
+    public func write<Stream: TextOutputStream>(to writer: inout Writer<Stream>) {
         writer.currentIndentation.append(writer.indentation)
         for Element in body() {
             Element.write(to: &writer)
@@ -101,7 +101,7 @@ public struct Braced: Element {
         self.body = body
     }
 
-    public func write<Stream: TextOutputStream>(to writer: inout CWriter<Stream>) {
+    public func write<Stream: TextOutputStream>(to writer: inout Writer<Stream>) {
         "{".write(to: &writer)
         Indented(body: body).write(to: &writer)
         "}".write(to: &writer)
@@ -117,7 +117,7 @@ public struct Parameter: Element {
         self.type = type
     }
 
-    public func write<Stream: TextOutputStream>(to writer: inout CWriter<Stream>) {
+    public func write<Stream: TextOutputStream>(to writer: inout Writer<Stream>) {
         type.write(to: &writer.stream)
         if let name {
             " \(name)".write(to: &writer)
@@ -134,7 +134,7 @@ public struct Field: Element {
         self.type = type
     }
 
-    public func write<Stream: TextOutputStream>(to writer: inout CWriter<Stream>) {
+    public func write<Stream: TextOutputStream>(to writer: inout Writer<Stream>) {
         type.write(to: &writer)
         " \(name)".write(to: &writer)
         Semicolon.write(to: &writer)
@@ -161,7 +161,7 @@ public struct Function: Element {
         self.body = body
     }
 
-    public func write<Stream: TextOutputStream>(to writer: inout CWriter<Stream>) {
+    public func write<Stream: TextOutputStream>(to writer: inout Writer<Stream>) {
         Indentation().write(to: &writer)
         returnType.write(to: &writer)
         " \(name)".write(to: &writer)
@@ -185,7 +185,7 @@ public struct ParameterList: Element {
         self.parameters = parameters
     }
 
-    public func write<Stream: TextOutputStream>(to writer: inout CWriter<Stream>) {
+    public func write<Stream: TextOutputStream>(to writer: inout Writer<Stream>) {
         "(".write(to: &writer)
         for (index, parameter) in parameters.enumerated() {
             if index > 0 {
@@ -207,7 +207,7 @@ public struct Typedef: Element {
         self.type = type
     }
 
-    public func write<Stream: TextOutputStream>(to writer: inout CWriter<Stream>) {
+    public func write<Stream: TextOutputStream>(to writer: inout Writer<Stream>) {
         Indentation().write(to: &writer)
         "typedef ".write(to: &writer)
         type.write(to: &writer)
@@ -230,7 +230,7 @@ public struct Struct: Element {
         self.body = body
     }
 
-    public func write<Stream: TextOutputStream>(to writer: inout CWriter<Stream>) {
+    public func write<Stream: TextOutputStream>(to writer: inout Writer<Stream>) {
         Indentation().write(to: &writer)
         "struct \(name) ".write(to: &writer)
         let body = body()
@@ -256,7 +256,7 @@ public struct Attribute: Element {
         self.contents = contents
     }
 
-    public func write<Stream: TextOutputStream>(to writer: inout CWriter<Stream>) {
+    public func write<Stream: TextOutputStream>(to writer: inout Writer<Stream>) {
         "__attribute__(\(contents))".write(to: &writer)
     }
 }
@@ -271,7 +271,7 @@ public struct ImportAttribute: Element {
         self.moduleName = moduleName
     }
 
-    public func write<Stream: TextOutputStream>(to writer: inout CWriter<Stream>) {
+    public func write<Stream: TextOutputStream>(to writer: inout Writer<Stream>) {
         var contents = "__import_name__(\"\(importName)\")"
         if let moduleName {
             contents.append(contentsOf: ", __module_name__(\"\(moduleName)\")")
@@ -280,7 +280,7 @@ public struct ImportAttribute: Element {
     }
 }
 
-public struct CWriter<Stream: TextOutputStream>: TextOutputStream {
+public struct Writer<Stream: TextOutputStream>: TextOutputStream {
 
 
     public let indentation: String

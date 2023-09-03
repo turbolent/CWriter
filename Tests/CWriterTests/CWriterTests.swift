@@ -4,7 +4,7 @@ import CWriter
 class CWriterTests: XCTestCase {
 
     public func testIncludeWithQuotes() throws {
-        var writer = CWriter()
+        var writer = Writer()
 
         Include(file: "foo", style: .Quotes)
             .write(to: &writer)
@@ -19,7 +19,7 @@ class CWriterTests: XCTestCase {
     }
 
     public func testIncludeWithAngularBrackets() throws {
-        var writer = CWriter()
+        var writer = Writer()
 
         Include(file: "foo", style: .AngularBrackets)
             .write(to: &writer)
@@ -34,7 +34,7 @@ class CWriterTests: XCTestCase {
     }
 
     public func testIndented() throws {
-        var writer = CWriter()
+        var writer = Writer()
 
         Indented {
             Include(file: "foo", style: .Quotes)
@@ -50,7 +50,7 @@ class CWriterTests: XCTestCase {
     }
 
     public func testBraced() throws {
-        var writer = CWriter()
+        var writer = Writer()
 
         Braced {
             Newline
@@ -68,7 +68,7 @@ class CWriterTests: XCTestCase {
     }
 
     public func testNewline() throws {
-        var writer = CWriter()
+        var writer = Writer()
 
         Braced {
             Newline
@@ -88,7 +88,7 @@ class CWriterTests: XCTestCase {
     }
 
     public func testFunctionWithParametersAndBody() throws {
-        var writer = CWriter()
+        var writer = Writer()
 
         Function(
             returnType: .Nominal("int"),
@@ -114,7 +114,7 @@ class CWriterTests: XCTestCase {
     }
 
     public func testFunctionWithoutBody() throws {
-        var writer = CWriter()
+        var writer = Writer()
 
         Function(
             returnType: .Nominal("int"),
@@ -135,7 +135,7 @@ class CWriterTests: XCTestCase {
     }
 
     public func testFunctionWithoutParameters() throws {
-        var writer = CWriter()
+        var writer = Writer()
 
         Function(
             returnType: .Nominal("int"),
@@ -152,7 +152,7 @@ class CWriterTests: XCTestCase {
     }
 
     public func testFunctionWithVoidParameter() throws {
-        var writer = CWriter()
+        var writer = Writer()
 
         Function(
             returnType: .Nominal("int"),
@@ -172,7 +172,7 @@ class CWriterTests: XCTestCase {
     }
 
     public func testTypedef() throws {
-        var writer = CWriter()
+        var writer = Writer()
 
         Typedef(name: "Foo", type: .Struct("Bar"))
             .write(to: &writer)
@@ -187,7 +187,7 @@ class CWriterTests: XCTestCase {
     }
 
     public func testStructWithoutFields() throws {
-        var writer = CWriter()
+        var writer = Writer()
 
         Struct(name: "Foo")
             .write(to: &writer)
@@ -202,7 +202,7 @@ class CWriterTests: XCTestCase {
     }
 
     public func testStructWithFields() throws {
-        var writer = CWriter()
+        var writer = Writer()
 
         Struct(name: "Foo") {
             Field(name: "foo", type: .Nominal("int"))
@@ -222,7 +222,7 @@ class CWriterTests: XCTestCase {
     }
 
     public func testAttribute() throws {
-        var writer = CWriter()
+        var writer = Writer()
 
         Attribute(contents: "foo")
             .write(to: &writer)
@@ -236,7 +236,7 @@ class CWriterTests: XCTestCase {
     }
 
     public func testImportAttributeWithoutModuleName() throws {
-        var writer = CWriter()
+        var writer = Writer()
 
         ImportAttribute(importName: "foo")
             .write(to: &writer)
@@ -250,7 +250,7 @@ class CWriterTests: XCTestCase {
     }
 
     public func testImportAttributeWithModuleName() throws {
-        var writer = CWriter()
+        var writer = Writer()
 
         ImportAttribute(
             importName: "foo",
@@ -290,7 +290,7 @@ class CWriterTests: XCTestCase {
     }
 
      public func testBuild() throws {
-        var writer = CWriter()
+        var writer = Writer()
 
         build {
             Include(file: "foo", style: .Quotes)
@@ -317,7 +317,7 @@ class CWriterTests: XCTestCase {
     public func testBuildIf() throws {
 
         func testBuild(writeFoo: Bool) -> String {
-            var writer = CWriter(stream: "")
+            var writer = Writer()
             build {
                 Include(file: "foo", style: .Quotes)
                 Include(file: "bar", style: .AngularBrackets)
@@ -358,7 +358,7 @@ class CWriterTests: XCTestCase {
 
 
         func testBuild(writeFoo: Bool) -> String {
-            var writer = CWriter(stream: "")
+            var writer = Writer()
             build {
                 Include(file: "foo", style: .Quotes)
                 Include(file: "bar", style: .AngularBrackets)
