@@ -17,6 +17,16 @@ public indirect enum Type {
     }
 }
 
+public extension Type {
+    init(name: String) {
+        self = .Declaration(.init(name: name))
+    }
+
+    init(struct name: String) {
+        self = .Declaration(.init(struct: name))
+    }
+}
+
 // See Section "6.7 Declarations" in the C standard
 // http://www.open-std.org/jtc1/sc22/wg14/www/docs/n1570.pdf.
 //
@@ -121,6 +131,49 @@ public struct TypeDeclaration {
             }
         }
     }
+}
+
+public extension TypeDeclaration {
+
+    init(name: String) {
+        self.init(typeSpecifier: .Name(name))
+    }
+
+    init(struct name: String) {
+        self.init(typeSpecifier: .Struct(name))
+    }
+
+    // Signed
+    static let Char = Self(name: "char")
+    static let Int = Self(name: "int")
+    static let Short = Self(name: "short")
+    static let Long = Self(name: "long")
+    static let LongLong = Self(name: "long long")
+
+    static let SignedChar = Self(name: "signed char")
+    static let SignedInt = Self(name: "signed int")
+    static let SignedShort = Self(name: "signed short")
+    static let SignedLong = Self(name: "signed long")
+    static let SignedLongLong = Self(name: "signed long long")
+
+    // Unsigned
+    static let UnsignedChar = Self(name: "unsigned char")
+    static let UnsignedInt = Self(name: "unsigned int")
+    static let UnsignedShort = Self(name: "unsigned short")
+    static let UnsignedLong = Self(name: "unsigned long")
+    static let UnsignedLongLong = Self(name: "unsigned long long")
+
+    // Floating point
+    static let Float = Self(name: "float")
+    static let Double = Self(name: "double")
+    static let LongDouble = Self(name: "long double")
+
+    // Other
+    static let Void = Self(name: "void")
+    static let Bool = Self(name: "bool")
+    static let _Bool = Self(name: "_Bool")
+    static let _Complex = Self(name: "_Complex")
+    static let ID = Self(name: "id")
 }
 
 public protocol Element {
