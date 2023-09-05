@@ -508,6 +508,12 @@ public struct Writer<Stream: TextOutputStream>: TextOutputStream {
     public mutating func write(_ string: String) {
         stream.write(string)
     }
+
+    public mutating func write(@CBuilder _ content: () -> [Element]) {
+        for element in content() {
+            element.write(to: &self)
+        }
+    }
 }
 
 @resultBuilder
