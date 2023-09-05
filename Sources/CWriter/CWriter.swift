@@ -25,6 +25,37 @@ public extension Type {
     init(struct name: String) {
         self = .Declaration(.init(struct: name))
     }
+
+    static let Char = Declaration(.Char)
+    static let Int = Declaration(.Int)
+    static let Short = Declaration(.Short)
+    static let Long = Declaration(.Long)
+    static let LongLong = Declaration(.LongLong)
+
+    static let SignedChar = Declaration(.SignedChar)
+    static let SignedInt = Declaration(.SignedInt)
+    static let SignedShort = Declaration(.SignedShort)
+    static let SignedLong = Declaration(.SignedLong)
+    static let SignedLongLong = Declaration(.SignedLongLong)
+
+    // Unsigned
+    static let UnsignedChar = Declaration(.UnsignedChar)
+    static let UnsignedInt = Declaration(.UnsignedInt)
+    static let UnsignedShort = Declaration(.UnsignedShort)
+    static let UnsignedLong = Declaration(.UnsignedLong)
+    static let UnsignedLongLong = Declaration(.UnsignedLongLong)
+
+    // Floating point
+    static let Float = Declaration(.Float)
+    static let Double = Declaration(.Double)
+    static let LongDouble = Declaration(.LongDouble)
+
+    // Other
+    static let Void = Declaration(.Void)
+    static let Bool = Declaration(.Bool)
+    static let _Bool = Declaration(._Bool)
+    static let _Complex = Declaration(._Complex)
+    static let ID = Declaration(.ID)
 }
 
 // See Section "6.7 Declarations" in the C standard
