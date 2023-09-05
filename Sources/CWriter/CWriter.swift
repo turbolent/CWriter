@@ -473,6 +473,23 @@ public struct ImportAttribute: Element {
     }
 }
 
+public struct Concat: Element {
+
+    public let body: Body
+
+    public init(@CBuilder body: @escaping Body) {
+        self.body = body
+    }
+
+    public func write<Stream>(to writer: inout CWriter.Writer<Stream>)
+        where Stream: TextOutputStream
+    {
+        for element in body() {
+            element.write(to: &writer)
+        }
+    }
+}
+
 public struct Writer<Stream: TextOutputStream>: TextOutputStream {
 
 

@@ -272,6 +272,34 @@ class CWriterTests: XCTestCase {
         )
     }
 
+    public func testConcat() throws {
+        var writer = Writer()
+
+        Indented {
+            Concat {
+                Raw("a")
+                Newline
+            }
+            Concat {
+                Raw("b")
+                Newline
+            }
+            Concat {
+                Raw("c")
+                Raw("d")
+            }
+        }.write(to: &writer)
+
+        XCTAssertEqual(
+            """
+                a
+                b
+                cd
+            """,
+            writer.stream
+        )
+    }
+
     public func testTypeDeclarationNameNoIdentifier() throws {
         var result = ""
 
