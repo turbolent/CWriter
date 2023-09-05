@@ -1,5 +1,5 @@
 
-public indirect enum Type {
+public indirect enum Type: Equatable {
     case Raw(String)
     case Declaration(TypeDeclaration)
 
@@ -63,18 +63,18 @@ public extension Type {
 //
 // inspired by https://github.com/mozilla/cbindgen CDecl
 //
-public struct TypeDeclaration {
+public struct TypeDeclaration: Equatable {
 
     public enum TypeQualifier: String {
         case Const = "const"
     }
 
-    public enum TypeSpecifier {
+    public enum TypeSpecifier: Equatable {
         case Name(String)
         case Struct(String)
     }
 
-    public enum Declarator {
+    public enum Declarator: Equatable {
         case Pointer(isConst: Bool)
         case Array(size: Int?)
     }
