@@ -470,4 +470,20 @@ class CWriterTests: XCTestCase {
             testBuild(writeFoo: false)
         )
     }
+
+    public func testLineLineComment() throws {
+        var writer = Writer()
+
+        LineComment("this is a comment.\nit spans multiple lines")
+            .write(to: &writer)
+
+        XCTAssertEqual(
+            """
+            // this is a comment.
+            // it spans multiple lines
+
+            """,
+            writer.stream
+        )
+    }
 }
