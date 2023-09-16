@@ -550,3 +550,19 @@ public struct CBuilder {
 public func build(@CBuilder _ content: () -> [Element]) -> [Element] {
     content()
 }
+
+public struct LineComment: Element {
+    public let text: String
+
+    public init(_ text: String) {
+        self.text = text
+    }
+
+    public func write<Stream: TextOutputStream>(to writer: inout Writer<Stream>) {
+        for line in text.split(separator: "\n") {
+            "// ".write(to: &writer)
+            line.write(to: &writer)
+            Newline.write(to: &writer)
+        }
+    }
+}
