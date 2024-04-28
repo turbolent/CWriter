@@ -486,4 +486,19 @@ class CWriterTests: XCTestCase {
             writer.stream
         )
     }
+
+    public func testTypeDeclarationMultipleDeclarators() throws {
+        var result = ""
+
+        TypeDeclaration(
+            typeSpecifier: .Name("int"),
+            declarators: [
+                .Pointer(isConst: true),
+                .Array(size: 2),
+                .Array(size: 3)
+            ]
+        ).write(identifier: "test", to: &result)
+
+        XCTAssertEqual("int (*const test)[2][3]", result)
+    }
 }

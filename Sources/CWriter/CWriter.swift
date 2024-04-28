@@ -117,9 +117,7 @@ public struct TypeDeclaration: Equatable {
         // Write the left part of declarators before the identifier
         for (index, declarator) in declarators.enumerated().reversed() {
             let nextIsPointer: Bool
-            if index <= 1 {
-                nextIsPointer = false
-            } else if case .Pointer = declarators[index - 1] {
+            if index > 0, case .Pointer = declarators[index - 1] {
                 nextIsPointer = true
             } else {
                 nextIsPointer = false
